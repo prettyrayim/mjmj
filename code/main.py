@@ -1,7 +1,11 @@
+
 import streamlit as st
 import pandas as pd
 import numpy as np
 
+# --------------------------------
+# 기본 설정
+# --------------------------------
 st.set_page_config(
     page_title="기온과 오존 농도 탐구",
     page_icon="🌤️",
@@ -9,16 +13,34 @@ st.set_page_config(
 )
 
 st.title("🌤️ 기온과 일사량이 높아질수록 대기 중 오존 농도는 정말 증가할까?")
-st.caption("데이터 과학 탐구 | 화학·환경화학")
+st.caption("데이터 과학 탐구 | 화학·환경화학 | 2025년")
 
-st.sidebar.title("🌱 탐구 메뉴")
+st.markdown("""
+이 앱은 실제 기상 및 대기오염 데이터를 이용하여
+기온과 일사량이 대기 중 오존 농도에 미치는 영향을 분석합니다.
+""")
+
+# --------------------------------
+# 사이드바
+# --------------------------------
+st.sidebar.title("🔍 탐구 메뉴")
 
 menu = st.sidebar.radio(
-    "메뉴 선택",
-    ["탐구 개요", "월별 데이터 분석", "전체 데이터 분석", "결론 및 한계"]
+    "분석할 항목을 선택하세요.",
+    [
+        "탐구 개요",
+        "월별 극값 비교",
+        "기온과 오존 분석",
+        "일사량과 오존 분석",
+        "월별 종합 분석",
+        "결론 및 한계"
+    ]
 )
 
-data = pd.DataFrame({
+# --------------------------------
+# 사용자가 조사한 데이터
+# --------------------------------
+extreme_data = pd.DataFrame({
     "월": ["6월", "7월", "8월"],
     "최고 기온 날짜": ["6월 19일", "7월 24일", "8월 24일"],
     "최고 기온(℃)": [33, np.nan, np.nan],
@@ -27,7 +49,9 @@ data = pd.DataFrame({
     "최고 오존 농도": [0.0407, 0.0303, 0.0321]
 })
 
-# 1. 탐구 개요
+# --------------------------------
+# 탐구 개요
+# --------------------------------
 if menu == "탐구 개요":
 
     st.header("1. 탐구 주제")
@@ -40,7 +64,7 @@ if menu == "탐구 개요":
 
     st.write("""
     여름철에는 오존주의보가 자주 발생한다는 점에 주목하였다.
-    오존은 햇빛에 의한 광화학 반응으로 생성되는 물질이므로
+    오존은 햇빛에 의한 광화학 반응을 통해 생성되므로
     기온과 일사량이 오존 농도에 어떤 영향을 미치는지 궁금해졌다.
 
     이에 실제 기상 및 대기오염 데이터를 활용하여
@@ -54,266 +78,533 @@ if menu == "탐구 개요":
     대기 중 오존은 질소산화물(NOx)과 휘발성유기화합물(VOCs)이
     햇빛에 의해 일으키는 광화학 반응과 관련이 있다.
 
-    따라서 오존 농도는 기온뿐 아니라 일사량,
-    전구물질의 농도 등 여러 환경 요인의 영향을 받는다.
+    따라서 오존 농도는 기온과 일사량뿐 아니라
+    전구물질의 농도, 풍속, 대기 정체 등
+    다양한 환경 요인의 영향을 받는다.
     """)
 
-    c1, c2, c3 = st.columns(3)
-    c1.metric("탐구 기간", "2025년 6~8월")
-    c2.metric("분석 월", "3개월")
-    c3.metric("핵심 변수", "기온·오존·일사량")
+    st.subheader("탐구 과정")
 
-# 2. 월별 데이터 분석
-elif menu == "월별 데이터 분석":
+    steps = [
+        "공공데이터를 활용하여 기온·일사량·오존 농도 수집",
+        "분석에 필요한 변수 선택 및 데이터 정제",
+        "산점도와 상관계수를 이용한 관계 분석",
+        "회귀분석을 통한 변수 간 관계 파악",
+        "월별 비교 및 화학적 원인 해석"
+    ]
 
-    st.header("2. 월별 데이터 분석")
+    for i, step in enumerate(steps, 1):
+        st.write(f"**{i}.** {step}")
 
-    st.subheader("월별 관측 결과")
+# --------------------------------
+# 월별 극값 비교
+# --------------------------------
+elif menu == "월별 극값 비교":
 
-    st.dataframe(data, use_container_width=True, hide_index=True)
+    st.header("2. 2025년 여름철 월별 극값 비교")
 
-    st.caption("7월과 8월의 최고 기온 수치는 아직 입력되지 않았습니다.")
+    st.write(
+        "직접 조사한 월별 최고 기온일과 최고 오존 농도일의 자료입니다."
+    )
+
+    st.dataframe(
+        extreme_data,
+        use_container_width=True,
+        hide_index=True
+    )
+
+    st.subheader("최고 기온일의 오존 농도와 월별 최고 오존 농도")
+
+    chart_data = extreme_data.set_index("월")[
+        ["최고 기온일 오존 농도", "최고 오존 농도"]
+    ]
+
+    st.bar_chart(chart_data)
+
+    st.caption("단위: ppm")
 
     st.subheader("월별 최고 오존 농도")
 
     st.bar_chart(
-        data,
+        extreme_data,
         x="월",
         y="최고 오존 농도"
     )
 
-    st.subheader("최고 기온일과 최고 오존 농도 비교")
-
-    compare = data.set_index("월")[
-        ["최고 기온일 오존 농도", "최고 오존 농도"]
-    ]
-
-    st.bar_chart(compare)
-
     st.subheader("분석 결과")
 
     st.write("""
-    6월에는 19일 기온이 33℃로 가장 높았으며,
+    6월 19일에는 기온이 33℃로 가장 높았으며,
     당시 오존 농도는 0.0276ppm이었다.
-    하지만 오존 농도는 6월 5일 0.0407ppm으로 가장 높았다.
+    그러나 오존 농도는 6월 5일 0.0407ppm으로 가장 높았다.
 
-    7월에는 24일 기온이 가장 높았고,
-    해당일 오존 농도는 0.0231ppm이었다.
+    7월 24일에는 기온이 가장 높았고,
+    당시 오존 농도는 0.0231ppm이었다.
     반면 7월 3일 오존 농도가 0.0303ppm으로 가장 높았다.
 
-    8월에도 24일 기온이 가장 높았고,
-    해당일 오존 농도는 0.0247ppm이었다.
-    그러나 8월 16일 오존 농도가 0.0321ppm으로 가장 높았다.
+    8월 24일에도 기온이 가장 높았지만,
+    당시 오존 농도는 0.0247ppm이었다.
+    오존 농도는 8월 16일 0.0321ppm으로 가장 높았다.
     """)
 
-    st.success("""
-    세 달 모두 최고 기온일과 최고 오존 농도일이
-    서로 일치하지 않았다.
-    """)
+    st.warning(
+        "세 달 모두 최고 기온일과 최고 오존 농도일이 일치하지 않았다. "
+        "다만 극값 날짜 비교만으로 기온과 오존 농도의 전체적인 "
+        "상관관계를 판단할 수는 없다."
+    )
 
-# 3. 전체 데이터 분석
-elif menu == "전체 데이터 분석":
+# --------------------------------
+# CSV 데이터 업로드 및 분석
+# --------------------------------
+else:
 
-    st.header("3. 전체 데이터 분석")
+    st.header("📊 실제 관측 데이터 분석")
 
     st.write("""
-    기온과 오존 농도가 포함된 CSV 파일을 업로드하면
-    상관관계와 회귀분석을 진행합니다.
+    기온·오존 농도·일사량이 포함된 CSV 파일을 업로드하세요.
+    업로드한 데이터로 산점도, 상관계수, 회귀분석을 수행합니다.
     """)
 
-    uploaded = st.file_uploader("CSV 파일 업로드", type=["csv"])
+    uploaded = st.file_uploader(
+        "관측 데이터 CSV 파일",
+        type=["csv"]
+    )
 
-    if uploaded is not None:
+    if uploaded is None:
 
-        try:
-            df = None
+        st.info(
+            "CSV 파일을 업로드하면 해당 분석 메뉴를 이용할 수 있습니다."
+        )
 
-            for encoding in ["utf-8-sig", "cp949", "euc-kr"]:
-                try:
-                    uploaded.seek(0)
-                    df = pd.read_csv(uploaded, encoding=encoding)
-                    break
-                except UnicodeDecodeError:
-                    continue
+    else:
 
-            if df is None:
-                st.error("CSV 파일을 읽을 수 없습니다.")
-                st.stop()
+        df = None
 
-            aliases = {
-                "일시": "날짜",
-                "측정일시": "날짜",
-                "기온(℃)": "기온",
-                "평균기온": "기온",
-                "오존": "오존농도",
-                "오존 농도": "오존농도",
-                "O3": "오존농도",
-                "O₃": "오존농도",
-                "일사": "일사량"
-            }
+        for encoding in ["utf-8-sig", "cp949", "euc-kr"]:
 
-            df = df.rename(columns=aliases)
+            try:
+                uploaded.seek(0)
+                df = pd.read_csv(uploaded, encoding=encoding)
+                break
 
-            required = ["날짜", "기온", "오존농도"]
+            except UnicodeDecodeError:
+                continue
 
-            if not all(col in df.columns for col in required):
-                st.error("날짜, 기온, 오존농도 열이 필요합니다.")
-                st.write("현재 CSV 열:", list(df.columns))
-                st.stop()
+        if df is None:
 
-            df["날짜"] = pd.to_datetime(df["날짜"], errors="coerce")
+            st.error("CSV 파일을 읽지 못했습니다.")
+            st.stop()
 
-            for col in ["기온", "오존농도", "일사량"]:
-                if col in df.columns:
-                    df[col] = pd.to_numeric(df[col], errors="coerce")
+        st.subheader("1. 데이터 열 설정")
 
-            df = df.replace([-999, -9999], np.nan)
+        columns = list(df.columns)
 
-            df = df.dropna(
-                subset=["날짜", "기온", "오존농도"]
+        def find_column(candidates):
+
+            for candidate in candidates:
+
+                for col in columns:
+
+                    if str(col).strip().lower() == candidate.lower():
+                        return col
+
+            return columns[0]
+
+        date_candidates = [
+            "날짜", "일시", "측정일시", "date", "datetime"
+        ]
+
+        temp_candidates = [
+            "기온", "평균기온", "평균 기온",
+            "기온(℃)", "temperature", "temp"
+        ]
+
+        ozone_candidates = [
+            "오존농도", "오존 농도", "오존",
+            "o3", "ozone", "o₃"
+        ]
+
+        solar_candidates = [
+            "일사량", "합계 일사량",
+            "일사량(mj/m2)", "solar radiation"
+        ]
+
+        c1, c2 = st.columns(2)
+
+        with c1:
+
+            date_col = st.selectbox(
+                "날짜 열",
+                columns,
+                index=columns.index(find_column(date_candidates))
             )
 
-            if len(df) < 3:
-                st.error("분석할 데이터가 부족합니다.")
-                st.stop()
+            temp_col = st.selectbox(
+                "기온 열",
+                columns,
+                index=columns.index(find_column(temp_candidates))
+            )
 
-            st.success(f"유효한 관측 자료 {len(df)}개")
+        with c2:
 
-            st.subheader("데이터 미리보기")
-            st.dataframe(df.head(30), use_container_width=True)
+            ozone_col = st.selectbox(
+                "오존 농도 열",
+                columns,
+                index=columns.index(find_column(ozone_candidates))
+            )
 
-            # 기온과 오존
-            st.subheader("기온과 오존 농도의 관계")
+            solar_options = ["없음"] + columns
 
-            corr = df["기온"].corr(df["오존농도"])
+            solar_default = find_column(solar_candidates)
+
+            solar_col = st.selectbox(
+                "일사량 열 (없으면 없음 선택)",
+                solar_options,
+                index=(
+                    solar_options.index(solar_default)
+                    if solar_default in columns
+                    else 0
+                )
+            )
+
+        # --------------------------------
+        # 데이터 정제
+        # --------------------------------
+
+        data = pd.DataFrame()
+
+        data["날짜"] = pd.to_datetime(
+            df[date_col].astype(str),
+            errors="coerce"
+        )
+
+        data["기온"] = pd.to_numeric(
+            df[temp_col].astype(str).str.replace(",", ""),
+            errors="coerce"
+        )
+
+        data["오존농도"] = pd.to_numeric(
+            df[ozone_col].astype(str).str.replace(",", ""),
+            errors="coerce"
+        )
+
+        if solar_col != "없음":
+
+            data["일사량"] = pd.to_numeric(
+                df[solar_col].astype(str).str.replace(",", ""),
+                errors="coerce"
+            )
+
+        data = data.replace([-999, -9999], np.nan)
+
+        data = data.dropna(
+            subset=["날짜", "기온", "오존농도"]
+        )
+
+        data = data[
+            (data["오존농도"] >= 0) &
+            (data["기온"].between(-60, 60))
+        ]
+
+        if data.empty:
+
+            st.error("유효한 관측 데이터가 없습니다.")
+            st.stop()
+
+        data["월"] = data["날짜"].dt.month
+
+        st.success(
+            f"데이터 정제 완료! 유효한 관측 자료: {len(data)}개"
+        )
+
+        st.subheader("데이터 미리보기")
+
+        st.dataframe(
+            data.head(20),
+            use_container_width=True
+        )
+
+        # --------------------------------
+        # 분석 메뉴 1: 기온과 오존
+        # --------------------------------
+
+        if menu == "기온과 오존 분석":
+
+            st.header("3. 기온과 오존 농도의 관계")
+
+            correlation = data["기온"].corr(
+                data["오존농도"]
+            )
 
             a, b = st.columns(2)
-            a.metric("상관계수", f"{corr:.3f}")
 
-            if corr > 0:
-                b.write("양의 상관관계")
-            elif corr < 0:
-                b.write("음의 상관관계")
+            a.metric(
+                "기온과 오존의 상관계수",
+                f"{correlation:.4f}"
+            )
+
+            if correlation > 0:
+                b.metric("관계 방향", "양의 상관관계")
+
+            elif correlation < 0:
+                b.metric("관계 방향", "음의 상관관계")
+
             else:
-                b.write("상관관계가 거의 없음")
+                b.metric("관계 방향", "상관관계 없음")
+
+            st.subheader("기온과 오존 농도 산점도")
 
             st.scatter_chart(
-                df,
+                data,
                 x="기온",
                 y="오존농도"
             )
 
-            # 회귀분석
-            st.subheader("기온에 따른 회귀분석")
-
-            slope, intercept = np.polyfit(
-                df["기온"],
-                df["오존농도"],
-                1
+            st.caption(
+                "각 점은 하나의 관측 자료를 나타냅니다. "
+                "상관계수는 -1부터 1 사이의 값입니다."
             )
 
-            predicted = slope * df["기온"] + intercept
+            if (
+                len(data) >= 3
+                and data["기온"].nunique() >= 2
+            ):
 
-            ss_res = ((df["오존농도"] - predicted) ** 2).sum()
-            ss_tot = ((df["오존농도"] - df["오존농도"].mean()) ** 2).sum()
+                slope, intercept = np.polyfit(
+                    data["기온"],
+                    data["오존농도"],
+                    1
+                )
 
-            r2 = 1 - ss_res / ss_tot if ss_tot != 0 else np.nan
+                predicted = (
+                    slope * data["기온"] + intercept
+                )
 
-            c1, c2 = st.columns(2)
+                ss_res = (
+                    (data["오존농도"] - predicted) ** 2
+                ).sum()
 
-            c1.metric("회귀 기울기", f"{slope:.6f}")
-            c2.metric(
-                "결정계수 R²",
-                f"{r2:.3f}" if pd.notna(r2) else "계산 불가"
-            )
+                ss_tot = (
+                    (data["오존농도"] -
+                     data["오존농도"].mean()) ** 2
+                ).sum()
 
-            st.write(
-                f"회귀식: 오존 농도 = {slope:.6f} × 기온 + ({intercept:.6f})"
-            )
+                r2 = (
+                    1 - ss_res / ss_tot
+                    if ss_tot != 0 else np.nan
+                )
 
-            # 일사량
-            if "일사량" in df.columns:
+                st.subheader("회귀분석")
 
-                sun = df.dropna(subset=["일사량", "오존농도"])
+                c1, c2 = st.columns(2)
 
-                if len(sun) >= 3 and sun["일사량"].nunique() > 1:
+                c1.metric("회귀 기울기", f"{slope:.6f}")
 
-                    st.subheader("일사량과 오존 농도의 관계")
+                c2.metric(
+                    "결정계수 R²",
+                    f"{r2:.4f}" if pd.notna(r2) else "계산 불가"
+                )
 
-                    sun_corr = sun["일사량"].corr(sun["오존농도"])
+                st.write(
+                    f"회귀식: 오존 농도 = "
+                    f"{slope:.6f} × 기온 + ({intercept:.6f})"
+                )
 
-                    st.metric("일사량과 오존 상관계수", f"{sun_corr:.3f}")
+                x_grid = np.linspace(
+                    data["기온"].min(),
+                    data["기온"].max(),
+                    100
+                )
+
+                regression = pd.DataFrame({
+                    "기온": x_grid,
+                    "회귀선": slope * x_grid + intercept
+                })
+
+                st.subheader("회귀직선")
+
+                st.line_chart(
+                    regression,
+                    x="기온",
+                    y="회귀선"
+                )
+
+        # --------------------------------
+        # 분석 메뉴 2: 일사량과 오존
+        # --------------------------------
+
+        elif menu == "일사량과 오존 분석":
+
+            st.header("4. 일사량과 오존 농도의 관계")
+
+            if "일사량" not in data.columns:
+
+                st.warning(
+                    "일사량 열을 선택한 CSV 파일을 업로드하세요."
+                )
+
+            else:
+
+                solar_data = data.dropna(
+                    subset=["일사량", "오존농도"]
+                )
+
+                if (
+                    len(solar_data) < 3
+                    or solar_data["일사량"].nunique() < 2
+                ):
+
+                    st.warning(
+                        "일사량 분석에 필요한 데이터가 부족합니다."
+                    )
+
+                else:
+
+                    corr = solar_data["일사량"].corr(
+                        solar_data["오존농도"]
+                    )
+
+                    st.metric(
+                        "일사량과 오존 농도의 상관계수",
+                        f"{corr:.4f}"
+                    )
+
+                    st.subheader("일사량과 오존 농도 산점도")
 
                     st.scatter_chart(
-                        sun,
+                        solar_data,
                         x="일사량",
                         y="오존농도"
                     )
 
-            # 월별 분석
-            st.subheader("월별 평균 데이터")
+                    st.write("""
+                    산점도의 분포와 상관계수를 통해
+                    일사량과 오존 농도 사이의 관계를 살펴볼 수 있습니다.
+                    """)
 
-            df["월"] = df["날짜"].dt.month
+        # --------------------------------
+        # 분석 메뉴 3: 월별 종합 분석
+        # --------------------------------
 
-            monthly = df.groupby("월").agg(
+        elif menu == "월별 종합 분석":
+
+            st.header("5. 월별 종합 분석")
+
+            monthly = data.groupby("월").agg(
                 평균기온=("기온", "mean"),
                 평균오존=("오존농도", "mean"),
                 최고오존=("오존농도", "max"),
                 관측수=("오존농도", "count")
             )
 
-            st.dataframe(monthly, use_container_width=True)
+            st.subheader("월별 통계표")
+
+            st.dataframe(
+                monthly.round(4),
+                use_container_width=True
+            )
+
+            st.subheader("월별 평균 기온")
+
+            st.bar_chart(monthly, y="평균기온")
 
             st.subheader("월별 평균 오존 농도")
 
             st.bar_chart(monthly, y="평균오존")
 
-            st.download_button(
-                "분석 데이터 다운로드",
-                df.to_csv(index=False).encode("utf-8-sig"),
-                file_name="ozone_analysis.csv",
-                mime="text/csv"
+            st.subheader("월별 최고 오존 농도")
+
+            st.bar_chart(monthly, y="최고오존")
+
+            st.subheader("날짜별 기온 변화")
+
+            temperature_chart = data.sort_values("날짜").set_index("날짜")
+
+            st.line_chart(
+                temperature_chart["기온"]
             )
 
-        except Exception as e:
-            st.error(f"분석 중 오류가 발생했습니다: {e}")
+            st.subheader("날짜별 오존 농도 변화")
 
-    else:
-        st.info("CSV 파일을 업로드하면 분석이 시작됩니다.")
+            st.line_chart(
+                temperature_chart["오존농도"]
+            )
 
-# 4. 결론 및 한계
-elif menu == "결론 및 한계":
+        # --------------------------------
+        # 결론 및 한계
+        # --------------------------------
 
-    st.header("4. 탐구 결론")
+        elif menu == "결론 및 한계":
 
-    st.write("""
-    2025년 6~8월의 월별 최고 기온일과 최고 오존 농도일을
-    비교한 결과, 세 달 모두 두 날짜가 서로 일치하지 않았다.
+            st.header("6. 탐구 결과 해석")
 
-    이를 통해 기온이 가장 높은 날에 오존 농도도
-    반드시 가장 높게 나타나는 것은 아니라는 점을 확인했다.
+            st.write("""
+            데이터 분석 결과를 바탕으로 기온과 일사량이
+            오존 농도에 미치는 영향을 해석합니다.
+            """)
 
-    오존 농도는 기온뿐 아니라 일사량,
-    질소산화물과 휘발성유기화합물 등
-    여러 환경 요인의 영향을 받을 수 있다.
-    """)
+            if len(data) >= 3:
 
-    st.header("5. 탐구의 한계")
+                corr = data["기온"].corr(
+                    data["오존농도"]
+                )
 
-    st.warning("""
-    - 2025년 6~8월의 3개월 자료만 분석했다.
-    - 각 달의 극값 비교만으로 전체 상관관계를 판단할 수 없다.
-    - 일사량과 다른 대기오염물질의 영향을 충분히 통제하지 못했다.
-    - 관측소의 위치와 관측 시간 차이가 결과에 영향을 줄 수 있다.
-    """)
+                st.metric(
+                    "기온과 오존의 상관계수",
+                    f"{corr:.4f}"
+                )
 
-    st.header("6. 후속 탐구")
+                if corr > 0:
+                    st.write(
+                        "기온과 오존 농도 사이에 양의 상관관계가 관찰됩니다."
+                    )
 
-    st.write("""
-    1. 시간별 기온과 오존 농도를 비교한다.
-    2. 일사량과 풍속 등의 변수를 추가한다.
-    3. 질소산화물과 휘발성유기화합물까지 고려한 다중회귀분석을 수행한다.
-    """)
+                elif corr < 0:
+                    st.write(
+                        "기온과 오존 농도 사이에 음의 상관관계가 관찰됩니다."
+                    )
+
+                else:
+                    st.write(
+                        "뚜렷한 선형 상관관계가 관찰되지 않습니다."
+                    )
+
+            st.warning("""
+            [탐구의 한계]
+
+            1. 기온과 오존 농도의 상관관계가 인과관계를 의미하지는 않는다.
+            2. 일사량, 풍속, 질소산화물, 휘발성유기화합물 등의
+               영향을 충분히 통제하지 못할 수 있다.
+            3. 관측 기간과 관측소의 위치에 따라 결과가 달라질 수 있다.
+            """)
+
+            st.subheader("후속 탐구")
+
+            st.write("""
+            1. 일사량과 풍속을 추가한 다중회귀분석
+            2. 질소산화물과 휘발성유기화합물의 영향 분석
+            3. 여러 해의 데이터를 활용한 계절별 비교
+            """)
+
+        # --------------------------------
+        # 데이터 다운로드
+        # --------------------------------
+
+        st.divider()
+
+        st.download_button(
+            "📥 정제된 데이터 다운로드",
+            data.to_csv(index=False).encode("utf-8-sig"),
+            file_name="ozone_analysis.csv",
+            mime="text/csv"
+        )
+
+# --------------------------------
+# 하단
+# --------------------------------
 
 st.divider()
-st.caption("데이터 과학 탐구 | 기온·일사량과 대기 중 오존 농도의 관계")
+
+st.caption(
+    "데이터 과학 탐구 | 기온·일사량과 대기 중 오존 농도의 관계"
+)
