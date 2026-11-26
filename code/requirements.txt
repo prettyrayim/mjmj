@@ -1,6 +1,6 @@
 
-streamlit
+streamlit==1.67.0
 pandas
 numpy
-plotly
+plotly==6.5.0
 statsmodels
